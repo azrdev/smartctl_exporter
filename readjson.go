@@ -17,6 +17,8 @@ type JSONCache struct {
 	LastCollect time.Time
 }
 
+const DEFAULT_EMPTY_JSON = "{\"json_format_version\":[0,0],\"smartctl\": {\"version\": [0,0]}"
+
 var (
 	jsonCache map[string]JSONCache
 )
@@ -28,7 +30,7 @@ func init() {
 // Parse json to gjson object
 func parseJSON(data string) gjson.Result {
 	if !gjson.Valid(data) {
-		return gjson.Parse("{}")
+		return gjson.Parse(DEFAULT_EMPTY_JSON)
 	}
 	return gjson.Parse(data)
 }
@@ -41,7 +43,7 @@ func readFakeSMARTctl(device string) gjson.Result {
 	jsonFile, err := ioutil.ReadFile(filename)
 	if err != nil {
 		logger.Error("Fake S.M.A.R.T. data reading error: %s", err)
-		return parseJSON("{}")
+		return parseJSON(DEFAULT_EMPTY_JSON)
 	}
 	return parseJSON(string(jsonFile))
 }
@@ -89,11 +91,11 @@ func readData(device string) (gjson.Result, error) {
 				jsonCache[device] = JSONCache{JSON: json, LastCollect: time.Now()}
 				return jsonCache[device].JSON, nil
 			}
-			return gjson.Parse("{}"), fmt.Errorf("smartctl returned bad data for device %s", device)
+			return gjson.Parse(DEFAULT_EMPTY_JSON), fmt.Errorf("smartctl returned bad data for device %s", device)
 		}
-		return gjson.Parse("{}"), fmt.Errorf("Too early collect called for device %s", device)
+		return gjson.Parse(DEFAULT_EMPTY_JSON), fmt.Errorf("Too early collect called for device %s", device)
 	}
-	return gjson.Parse("{}"), fmt.Errorf("Device %s unavialable", device)
+	return gjson.Parse(DEFAULT_EMPTY_JSON), fmt.Errorf("Device %s unavialable", device)
 }
 
 // Parse smartctl return code
